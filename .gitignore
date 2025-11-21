@@ -1,0 +1,25 @@
+# MAVEN
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IntelliJ IDEA
+.idea/*
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# docs
+docs/chainway/*
+!docs/chainway/README.md
+!docs/chainway/*.rar
+
+# Modules
+
+## rifd-chainway
+!rfid-chainway/src/main/resources/files/libTagReader.so
+!rfid-chainway/src/main/resources/files/UHFAPI.dll
