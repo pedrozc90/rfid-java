@@ -1,6 +1,7 @@
 package com.contare.rfid.chainway;
 
 import com.contare.rfid.NativeLoader;
+import com.contare.rfid.devices.BufferedRfidDevice;
 import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.events.RfidDeviceEvent;
 import com.contare.rfid.events.StatusEvent;
@@ -20,7 +21,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-public abstract class ChainwayDevice<T extends IUHF> implements RfidDevice {
+public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice implements RfidDevice {
 
     protected final Logger logger;
 
@@ -28,8 +29,6 @@ public abstract class ChainwayDevice<T extends IUHF> implements RfidDevice {
 
     protected final int _minPower = 0;
     protected final int _maxPower = 33;
-    protected final Set<TagMetadata> _buffer = new HashSet<>();
-    protected final Set<String> _uniques = new HashSet<>();
 
     protected final ExecutorService executor;
     protected volatile Consumer<RfidDeviceEvent> _callback;
@@ -61,17 +60,6 @@ public abstract class ChainwayDevice<T extends IUHF> implements RfidDevice {
     @Override
     public int getMaxPower() {
         return _maxPower;
-    }
-
-    @Override
-    public Set<TagMetadata> getBuffer() {
-        return Collections.unmodifiableSet(_buffer);
-    }
-
-    @Override
-    public void clearBuffer() {
-        _buffer.clear();
-        _uniques.clear();
     }
 
     public abstract boolean init(final Options opts) throws RfidDeviceException;

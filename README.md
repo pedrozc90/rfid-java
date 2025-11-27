@@ -113,6 +113,13 @@ rfid-java/                                (root of the repository)
 </dependencies>
 ```
 
+### How to add a new module
+
+```bash
+# install local/downloaded SDKS in the local maven repository
+./scripts/repo.sh
+```
+
 ## Frequency
 
 | Region       |  Frequency  | Chainway Mask |

@@ -40,7 +40,7 @@ public interface RfidDevice extends AutoCloseable {
 
     boolean connect(final Options opts) throws RfidDeviceException;
 
-    void disconnect();
+    void disconnect() throws RfidDeviceException;
 
     boolean isConnected();
 

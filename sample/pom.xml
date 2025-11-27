@@ -34,6 +34,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Zebra Module -->
+        <dependency>
+            <groupId>com.contare</groupId>
+            <artifactId>rfid-zebra</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Logback -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

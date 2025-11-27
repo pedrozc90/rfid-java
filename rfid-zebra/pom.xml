@@ -10,14 +10,13 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>rfid-chainway</artifactId>
+    <artifactId>rfid-zebra</artifactId>
     <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jna.version>5.4.0</jna.version>
     </properties>
 
     <repositories>
@@ -42,21 +41,9 @@
 
         <!-- SDK -->
         <dependency>
-            <groupId>com.rscja</groupId>
-            <artifactId>deviceapi</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>${jna.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-platform</artifactId>
-            <version>${jna.version}</version>
+            <groupId>com.mot.rfid</groupId>
+            <artifactId>api3-sdk</artifactId>
+            <version>2.0.0</version>
         </dependency>
     </dependencies>
 
