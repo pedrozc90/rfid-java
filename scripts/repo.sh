@@ -21,3 +21,14 @@
   -DgeneratePom=true \
   -Durl=file://$PWD/.repo \
   -DrepositoryId=local
+
+# Impinj SDK
+./mvnw deploy:deploy-file \
+  -Dfile=rfid-impinj/lib/OctaneSDKJava-5.0.0.0-jar-with-dependencies.jar \
+  -DgroupId=com.impinj \
+  -DartifactId=octane \
+  -Dversion=5.0.0.0 \
+  -Dpackaging=jar \
+  -DgeneratePom=true \
+  -Durl=file://$PWD/.repo \
+  -DrepositoryId=local

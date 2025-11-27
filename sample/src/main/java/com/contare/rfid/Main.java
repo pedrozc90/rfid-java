@@ -9,6 +9,7 @@ import com.contare.rfid.events.ErrorEvent;
 import com.contare.rfid.events.StatusEvent;
 import com.contare.rfid.events.TagEvent;
 import com.contare.rfid.exceptions.RfidDeviceException;
+import com.contare.rfid.impinj.ImpinjDevice;
 import com.contare.rfid.objects.Options;
 import com.contare.rfid.objects.RfidDeviceFrequency;
 import com.contare.rfid.zebra.ZebraFX7500;
@@ -117,6 +118,7 @@ public class Main {
         public static final String FAKE = "fake";
         public static final String CHAINWAY_R3 = "chainway-r3";
         public static final String CHAINWAY_UR4 = "chainway-ur4";
+        public static final String IMPINJ = "impinj";
         public static final String ZEBRA_FX7500 = "zebra-fx7500";
 
         public static RfidDevice create(final String value, final ExecutorService executor) {
@@ -125,6 +127,8 @@ public class Main {
                     return new ChainwayR3(executor);
                 case CHAINWAY_UR4:
                     return new ChainwayUR4(executor);
+                case IMPINJ:
+                    return new ImpinjDevice(executor);
                 case ZEBRA_FX7500:
                     return new ZebraFX7500(executor);
                 default:

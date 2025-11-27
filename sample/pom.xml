@@ -34,6 +34,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Impinj Module -->
+        <dependency>
+            <groupId>com.contare</groupId>
+            <artifactId>rfid-impinj</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Zebra Module -->
         <dependency>
             <groupId>com.contare</groupId>
