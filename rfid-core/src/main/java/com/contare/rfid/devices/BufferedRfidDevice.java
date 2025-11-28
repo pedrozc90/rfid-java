@@ -5,11 +5,12 @@ import com.contare.rfid.objects.TagMetadata;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class BufferedRfidDevice implements RfidDevice {
 
-    protected final Set<TagMetadata> _buffer = new HashSet<>();
-    protected final Set<String> _uniques = new HashSet<>();
+    protected final Set<TagMetadata> _buffer = ConcurrentHashMap.newKeySet();
+    protected final Set<String> _uniques = ConcurrentHashMap.newKeySet();
 
     @Override
     public Set<TagMetadata> getBuffer() {

@@ -32,3 +32,34 @@
   -DgeneratePom=true \
   -Durl=file://$PWD/.repo \
   -DrepositoryId=local
+
+# Acura SDK
+./mvnw deploy:deploy-file \
+  -Dfile=rfid-acura/lib/mercuryapi.jar \
+  -DgroupId=com.thingmagic \
+  -DartifactId=thingmagic \
+  -Dversion=1.0.0 \
+  -Dpackaging=jar \
+  -DgeneratePom=true \
+  -Durl=file://$PWD/.repo \
+  -DrepositoryId=local
+
+./mvnw deploy:deploy-file \
+  -Dfile=rfid-acura/lib/jSerialComm-2.2.0.jar \
+  -DgroupId=com.fazecast \
+  -DartifactId=fazecast \
+  -Dversion=2.2.0 \
+  -Dpackaging=jar \
+  -DgeneratePom=true \
+  -Durl=file://$PWD/.repo \
+  -DrepositoryId=local
+
+./mvnw deploy:deploy-file \
+  -Dfile=rfid-acura/lib/ltkjava-1.0.0.6.jar \
+  -DgroupId=org.ltkjava \
+  -DartifactId=ltkjava \
+  -Dversion=1.0.0.6 \
+  -Dpackaging=jar \
+  -DgeneratePom=true \
+  -Durl=file://$PWD/.repo \
+  -DrepositoryId=local

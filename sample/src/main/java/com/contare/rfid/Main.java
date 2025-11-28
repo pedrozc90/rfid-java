@@ -1,5 +1,7 @@
 package com.contare.rfid;
 
+import com.contare.rfid.acura.AcuraDevice;
+import com.contare.rfid.acura.AcuraHexaPad;
 import com.contare.rfid.chainway.ChainwayR3;
 import com.contare.rfid.chainway.ChainwayUR4;
 import com.contare.rfid.devices.FakeRfidDevice;
@@ -41,7 +43,11 @@ public class Main {
     }
 
     private static void run() {
-        final Options opts = new Options("none", "none", 0, 4, false);
+        final Options opts = Options.builder()
+            .serial("COM3")
+            .baudRate(115_200)
+            .verbose(false)
+            .build();
 
         final Set<String> epcs = new HashSet<>();
 
@@ -120,6 +126,8 @@ public class Main {
         public static final String CHAINWAY_UR4 = "chainway-ur4";
         public static final String IMPINJ = "impinj";
         public static final String ZEBRA_FX7500 = "zebra-fx7500";
+        public static final String ACURA_HEXA_PAD = "acura-hex-pad";
+        public static final String ACURA_R700 = "acura-r700";
 
         public static RfidDevice create(final String value, final ExecutorService executor) {
             switch (value) {
@@ -131,6 +139,10 @@ public class Main {
                     return new ImpinjDevice(executor);
                 case ZEBRA_FX7500:
                     return new ZebraFX7500(executor);
+                case ACURA_HEXA_PAD:
+                    return new AcuraHexaPad(executor);
+                case ACURA_R700:
+                    return new AcuraDevice(executor);
                 default:
                     return new FakeRfidDevice();
             }
