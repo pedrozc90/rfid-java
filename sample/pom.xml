@@ -48,6 +48,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Acura Module -->
+        <dependency>
+            <groupId>com.contare</groupId>
+            <artifactId>rfid-acura</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Logback -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

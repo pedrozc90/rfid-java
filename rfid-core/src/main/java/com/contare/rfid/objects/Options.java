@@ -1,23 +1,30 @@
 package com.contare.rfid.objects;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+@RequiredArgsConstructor
 public class Options {
 
-    private final String serial;    // serial port
     private final String ip;        // network ip address
     private final Integer port;     // network port
-    private final int antennas;     // maximum number of antennas
-    private final boolean verbose;  // printout stuff
+
+    @Builder.Default
+    private final int antennas = -1;     // maximum number of antennas
+
+    @Builder.Default
+    private final boolean verbose = false;  // printout stuff
+
+    private final String serial;    // serial port
+
+    @Builder.Default
+    private final Integer baudRate = 115_200; // serial port baud rate
 
     private final Short vendor;     // ???
     private final Short productId;  // ???
-
-    public Options(final String serial, final String ip, final Integer port, final int antennas, final boolean verbose) {
-        this(serial, ip, port, antennas, verbose, (short) 0, (short) 0);
-    }
 
 }

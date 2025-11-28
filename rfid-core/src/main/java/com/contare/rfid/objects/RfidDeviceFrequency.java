@@ -18,6 +18,7 @@ public enum RfidDeviceFrequency {
     RUSSIA("Russia (860 ~ 867.6 MHz)"),
     MOROCCO("Morocco (914 ~ 921 MHz)"),
     MALAYSIA("Malaysia (919 ~ 923 MHz)"),
+    HONG_KONG("Hong Kong (920 ~ 925 MHz)"),
     BRAZIL("Brazil (902 ~ 907.5 MHz)");
 
     private final String label;
