@@ -1,7 +1,5 @@
 package com.contare.rfid.acura;
 
-import com.contare.rfid.devices.BufferedRfidDevice;
-import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.events.RfidDeviceEvent;
 import com.contare.rfid.events.TagEvent;
 import com.contare.rfid.exceptions.RfidDeviceException;
@@ -19,7 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
+public class AcuraHexaPad extends AcuraBaseDevice {
 
     private static final String OS = System.getProperty("os.name").toLowerCase();
     private static final String CMD_READ_TAG_ON = "readtag on";
@@ -42,16 +40,6 @@ public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public int getMinPower() {
-        return 0;
-    }
-
-    @Override
-    public int getMaxPower() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
     public boolean connect(final Options opts) throws RfidDeviceException {
         Objects.requireNonNull(opts, "Options must not be null");
 
@@ -61,7 +49,7 @@ public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
         final Integer baudRate = opts.getBaudRate();
         if (baudRate == null) {
             throw new IllegalArgumentException("baud rate must not be null");
-        } else if (baudRate != 115200) {
+        } else if (baudRate != 115_200) {
             throw new IllegalArgumentException("baud rate must be 115200");
         }
 
@@ -130,8 +118,6 @@ public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
     public void setCallback(final Consumer<RfidDeviceEvent> callback) {
         _callback = callback;
     }
-
-
 
     @Override
     public boolean startInventory() throws RfidDeviceException {
@@ -215,6 +201,11 @@ public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        throw new UnsupportedOperationException("HexaPad do not support kill tag operations.");
+    }
+
+    @Override
     public RfidDeviceFrequency getFrequency() {
         return null;
     }
@@ -251,7 +242,7 @@ public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public boolean setPower(int value) {
+    public boolean setPower(final int value) {
         try {
             if (isConnected()) {
                 final String cmd = String.format(CMD_SET_POWER, value);
@@ -275,12 +266,12 @@ public class AcuraHexaPad extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public boolean setBeep(boolean enabled) {
+    public boolean setBeep(final boolean enabled) {
         return false;
     }
 
     @Override
-    public boolean setTagFocus(boolean enabled) {
+    public boolean setTagFocus(final boolean enabled) {
         throw new UnsupportedOperationException("HexaPad do not support tag focus.");
     }
 

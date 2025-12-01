@@ -3,7 +3,6 @@ package com.contare.rfid.devices;
 import com.contare.rfid.objects.TagMetadata;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 

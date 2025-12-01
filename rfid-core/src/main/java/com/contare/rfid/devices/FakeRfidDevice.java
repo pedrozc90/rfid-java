@@ -144,6 +144,11 @@ public class FakeRfidDevice implements RfidDevice {
     }
 
     @Override
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        throw new UnsupportedOperationException("Device do not support kill tag operations.");
+    }
+
+    @Override
     public RfidDeviceFrequency getFrequency() {
         return _frequency;
     }
@@ -174,13 +179,13 @@ public class FakeRfidDevice implements RfidDevice {
     }
 
     @Override
-    public boolean setBeep(boolean enabled) {
+    public boolean setBeep(final boolean enabled) {
         _beep = enabled;
         return true;
     }
 
     @Override
-    public boolean setTagFocus(boolean enabled) {
+    public boolean setTagFocus(final boolean enabled) {
         return false;
     }
 
@@ -205,7 +210,7 @@ public class FakeRfidDevice implements RfidDevice {
          * Simple overload that uses fixed values:
          * filter = 3, partition = 5, companyPrefix = "0614141"
          */
-        public static String generateSgtin(String itemReference, long serialNumber) {
+        public static String generateSgtin(final String itemReference, final long serialNumber) {
             int filter = 3;
             int partition = 5;                 // matches your example (partition value 5)
             String companyPrefix = "0614141";  // preserve leading zero as string
@@ -218,11 +223,11 @@ public class FakeRfidDevice implements RfidDevice {
          * companyPrefix must be a decimal string (may contain leading zeros).
          * itemReference is decimal (no leading zeros in int form; digit length is validated against partition).
          */
-        private static String generateSgtin(int filter,
-                                            int partition,
-                                            String companyPrefix,
-                                            int itemReference,
-                                            long serialNumber) {
+        private static String generateSgtin(final int filter,
+                                            final int partition,
+                                            final String companyPrefix,
+                                            final int itemReference,
+                                            final long serialNumber) {
 
             // header for SGTIN-96
             final int HEADER = 0x30; // 8 bits

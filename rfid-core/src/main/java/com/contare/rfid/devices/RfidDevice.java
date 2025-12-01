@@ -57,6 +57,16 @@ public interface RfidDevice extends AutoCloseable {
     boolean isReading();
 
     /**
+     * Destroy tag.
+     *
+     * @param rfid     - epc hexadecimal string.
+     * @param password - tag password.
+     * @return true if operation succeeded, false otherwise.
+     * @throws RfidDeviceException
+     */
+    boolean killTag(final String rfid, final String password) throws RfidDeviceException;
+
+    /**
      * Returns the frequency of the device.
      *
      * @return the frequency of the device.

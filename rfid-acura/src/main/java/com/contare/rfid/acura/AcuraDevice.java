@@ -1,7 +1,5 @@
 package com.contare.rfid.acura;
 
-import com.contare.rfid.devices.BufferedRfidDevice;
-import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.events.RfidDeviceEvent;
 import com.contare.rfid.events.TagEvent;
 import com.contare.rfid.exceptions.RfidDeviceException;
@@ -17,7 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public class AcuraDevice extends BufferedRfidDevice implements RfidDevice {
+public class AcuraDevice extends AcuraBaseDevice {
 
     private static final String OS = System.getProperty("os.name").toLowerCase();
 
@@ -34,16 +32,6 @@ public class AcuraDevice extends BufferedRfidDevice implements RfidDevice {
 
     public AcuraDevice(final Executor executor) {
         this.executor = executor;
-    }
-
-    @Override
-    public int getMinPower() {
-        return 0;
-    }
-
-    @Override
-    public int getMaxPower() {
-        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -100,12 +88,12 @@ public class AcuraDevice extends BufferedRfidDevice implements RfidDevice {
         _callback = callback;
     }
 
-
     @Override
     public boolean startInventory() throws RfidDeviceException {
         if (!connected) {
             throw new RfidDeviceException("Device is not connected.");
         }
+
         if (reading) {
             throw new RfidDeviceException("Device is already reading.");
         }
@@ -179,6 +167,26 @@ public class AcuraDevice extends BufferedRfidDevice implements RfidDevice {
     @Override
     public boolean isReading() {
         return reading;
+    }
+
+    @Override
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        try {
+            final TagData filter = new TagData(rfid);
+
+            // Kill password (must be 32 bits)
+            // Example: 0x00000000 — many tags will NOT allow kill with this
+            final int value = Integer.parseUnsignedInt(password, 16);
+
+            final Gen2.Kill operation = new Gen2.Kill(value);
+
+            final Object result = reader.executeTagOp(operation, filter);
+            logger.debugf("Kill result: %s", result);
+
+            return true;
+        } catch (ReaderException e) {
+            throw new RfidDeviceException(e);
+        }
     }
 
     @Override
@@ -257,7 +265,7 @@ public class AcuraDevice extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public boolean setPower(int value) {
+    public boolean setPower(final int value) {
         try {
             if (reader != null) {
                 if (connected) {
@@ -277,12 +285,12 @@ public class AcuraDevice extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public boolean setBeep(boolean enabled) {
+    public boolean setBeep(final boolean enabled) {
         return false;
     }
 
     @Override
-    public boolean setTagFocus(boolean enabled) {
+    public boolean setTagFocus(final boolean enabled) {
         throw new UnsupportedOperationException("Device do not support tag focus.");
     }
 
