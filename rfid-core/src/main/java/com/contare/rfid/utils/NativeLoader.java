@@ -1,4 +1,4 @@
-package com.contare.rfid;
+package com.contare.rfid.utils;
 
 import org.jboss.logging.Logger;
 

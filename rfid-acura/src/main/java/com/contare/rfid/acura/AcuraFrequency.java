@@ -1,6 +1,6 @@
 package com.contare.rfid.acura;
 
-import com.contare.rfid.objects.RfidDeviceFrequency;
+import com.contare.rfid.devices.RfidDevice;
 import com.thingmagic.Reader;
 import lombok.Getter;
 
@@ -12,20 +12,20 @@ import java.util.Map;
 @Getter
 public enum AcuraFrequency {
 
-    UNITED_STATES(RfidDeviceFrequency.UNITED_STATES, Reader.Region.NA),
-    EUROPE(RfidDeviceFrequency.EUROPE, Reader.Region.EU),
-    KOREAN(RfidDeviceFrequency.KOREAN, Reader.Region.KR),
-    JAPAN(RfidDeviceFrequency.JAPAN, Reader.Region.JP),
-    TAIWAN(RfidDeviceFrequency.TAIWAN, Reader.Region.TW),
-    VIETNAM(RfidDeviceFrequency.VIETNAM, Reader.Region.VN),
-    MALAYSIA(RfidDeviceFrequency.MALAYSIA, Reader.Region.MY),
-    RUSSIA(RfidDeviceFrequency.RUSSIA, Reader.Region.RU),
-    HONG_KONG(RfidDeviceFrequency.HONG_KONG, Reader.Region.HK),
-    BRAZIL(RfidDeviceFrequency.BRAZIL, Reader.Region.OPEN, 250, 902_000, 905_000, 915_000, 927_500),
+    UNITED_STATES(RfidDevice.Frequency.UNITED_STATES, Reader.Region.NA),
+    EUROPE(RfidDevice.Frequency.EUROPE, Reader.Region.EU),
+    KOREAN(RfidDevice.Frequency.KOREAN, Reader.Region.KR),
+    JAPAN(RfidDevice.Frequency.JAPAN, Reader.Region.JP),
+    TAIWAN(RfidDevice.Frequency.TAIWAN, Reader.Region.TW),
+    VIETNAM(RfidDevice.Frequency.VIETNAM, Reader.Region.VN),
+    MALAYSIA(RfidDevice.Frequency.MALAYSIA, Reader.Region.MY),
+    RUSSIA(RfidDevice.Frequency.RUSSIA, Reader.Region.RU),
+    HONG_KONG(RfidDevice.Frequency.HONG_KONG, Reader.Region.HK),
+    BRAZIL(RfidDevice.Frequency.BRAZIL, Reader.Region.OPEN, 250, 902_000, 905_000, 915_000, 927_500),
 
     NONE(null, Reader.Region.OPEN);
 
-    private static final Map<RfidDeviceFrequency, AcuraFrequency> _frequencies = new HashMap<>();
+    private static final Map<RfidDevice.Frequency, AcuraFrequency> _frequencies = new HashMap<>();
 
     static {
         for (AcuraFrequency row : values()) {
@@ -35,16 +35,16 @@ public enum AcuraFrequency {
         }
     }
 
-    private final RfidDeviceFrequency frequency;
+    private final RfidDevice.Frequency frequency;
     private final Reader.Region region;
     private final int step;       // in kHz
     private final int[] table;    // array of frequencies in kHz
 
-    AcuraFrequency(final RfidDeviceFrequency frequency, final Reader.Region region) {
+    AcuraFrequency(final RfidDevice.Frequency frequency, final Reader.Region region) {
         this(frequency, region, -1);
     }
 
-    AcuraFrequency(final RfidDeviceFrequency frequency, final Reader.Region region, final int step, final int... channels) {
+    AcuraFrequency(final RfidDevice.Frequency frequency, final Reader.Region region, final int step, final int... channels) {
         this.frequency = frequency;
         this.region = region;
         this.step = step;
@@ -77,11 +77,11 @@ public enum AcuraFrequency {
         return out;
     }
 
-    public RfidDeviceFrequency toFrequency() {
+    public RfidDevice.Frequency toFrequency() {
         return frequency;
     }
 
-    public static AcuraFrequency of(final RfidDeviceFrequency frequency) {
+    public static AcuraFrequency of(final RfidDevice.Frequency frequency) {
         return _frequencies.getOrDefault(frequency, NONE);
     }
 

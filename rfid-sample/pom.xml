@@ -10,7 +10,7 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>sample</artifactId>
+    <artifactId>rfid-sample</artifactId>
     <packaging>jar</packaging>
 
     <properties>

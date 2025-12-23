@@ -1,11 +1,7 @@
 package com.contare.rfid.acura;
 
-import com.contare.rfid.events.RfidDeviceEvent;
-import com.contare.rfid.events.TagEvent;
+import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.exceptions.RfidDeviceException;
-import com.contare.rfid.objects.Options;
-import com.contare.rfid.objects.RfidDeviceFrequency;
-import com.contare.rfid.objects.RfidDeviceParams;
 import com.contare.rfid.objects.TagMetadata;
 import com.fazecast.jSerialComm.SerialPort;
 import org.jboss.logging.Logger;
@@ -28,11 +24,11 @@ public class AcuraHexaPad extends AcuraBaseDevice {
     private final Logger logger = Logger.getLogger(AcuraHexaPad.class.getName());
 
     private volatile SerialPort comm;
-    private Options opts;
+    private RfidDevice.Options opts;
 
     private volatile Thread _thread;
     private final Executor executor;
-    private volatile Consumer<RfidDeviceEvent> _callback;
+    private volatile Consumer<RfidDevice.Event> _callback;
     private boolean reading = false;
 
     public AcuraHexaPad(final Executor executor) {
@@ -40,7 +36,7 @@ public class AcuraHexaPad extends AcuraBaseDevice {
     }
 
     @Override
-    public boolean connect(final Options opts) throws RfidDeviceException {
+    public boolean connect(final RfidDevice.Options opts) throws RfidDeviceException {
         Objects.requireNonNull(opts, "Options must not be null");
 
         final String serialPort = opts.getSerial();
@@ -105,17 +101,17 @@ public class AcuraHexaPad extends AcuraBaseDevice {
     }
 
     @Override
-    public RfidDeviceParams getInventoryParameters() {
+    public RfidDevice.Params getInventoryParameters() {
         return null;
     }
 
     @Override
-    public boolean setInventoryParameters(final RfidDeviceParams params) {
+    public boolean setInventoryParameters(final RfidDevice.Params params) {
         return false;
     }
 
     @Override
-    public void setCallback(final Consumer<RfidDeviceEvent> callback) {
+    public void setCallback(final Consumer<RfidDevice.Event> callback) {
         _callback = callback;
     }
 
@@ -201,12 +197,17 @@ public class AcuraHexaPad extends AcuraBaseDevice {
     }
 
     @Override
-    public RfidDeviceFrequency getFrequency() {
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        throw new UnsupportedOperationException("HexaPad do not support kill tag operations.");
+    }
+
+    @Override
+    public RfidDevice.Frequency getFrequency() {
         return null;
     }
 
     @Override
-    public boolean setFrequency(final RfidDeviceFrequency frequency) {
+    public boolean setFrequency(final RfidDevice.Frequency frequency) {
         return false;
     }
 

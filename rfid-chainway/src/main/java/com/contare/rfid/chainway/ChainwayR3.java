@@ -1,7 +1,7 @@
 package com.contare.rfid.chainway;
 
+import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.exceptions.RfidDeviceException;
-import com.contare.rfid.objects.Options;
 import com.rscja.deviceapi.RFIDWithUHFUsb;
 import com.rscja.deviceapi.interfaces.KeyEventCallback;
 
@@ -14,7 +14,7 @@ public class ChainwayR3 extends ChainwayDevice<RFIDWithUHFUsb> {
     }
 
     @Override
-    public boolean init(final Options opts) throws RfidDeviceException {
+    public boolean init(final RfidDevice.Options opts) throws RfidDeviceException {
         boolean connected = uhf.init(null);
         if (connected) {
             logger.debugf("Device successfully connected");

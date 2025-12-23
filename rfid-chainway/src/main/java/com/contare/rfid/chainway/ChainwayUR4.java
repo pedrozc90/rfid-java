@@ -1,7 +1,7 @@
 package com.contare.rfid.chainway;
 
+import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.exceptions.RfidDeviceException;
-import com.contare.rfid.objects.Options;
 import com.rscja.deviceapi.RFIDWithUHFNetworkUR4;
 import com.rscja.deviceapi.entity.AntennaNameEnum;
 import com.rscja.deviceapi.entity.AntennaState;
@@ -20,7 +20,7 @@ public class ChainwayUR4 extends ChainwayDevice<RFIDWithUHFNetworkUR4> {
     }
 
     @Override
-    public boolean init(final Options opts) throws RfidDeviceException {
+    public boolean init(final RfidDevice.Options opts) throws RfidDeviceException {
         final String ip = opts.getIp();
         Objects.requireNonNull(ip, "IP address is required.");
 

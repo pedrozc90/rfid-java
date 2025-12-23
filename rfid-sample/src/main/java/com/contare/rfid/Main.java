@@ -6,14 +6,8 @@ import com.contare.rfid.chainway.ChainwayR3;
 import com.contare.rfid.chainway.ChainwayUR4;
 import com.contare.rfid.devices.FakeRfidDevice;
 import com.contare.rfid.devices.RfidDevice;
-import com.contare.rfid.events.BatteryEvent;
-import com.contare.rfid.events.ErrorEvent;
-import com.contare.rfid.events.StatusEvent;
-import com.contare.rfid.events.TagEvent;
 import com.contare.rfid.exceptions.RfidDeviceException;
 import com.contare.rfid.impinj.ImpinjDevice;
-import com.contare.rfid.objects.Options;
-import com.contare.rfid.objects.RfidDeviceFrequency;
 import com.contare.rfid.zebra.ZebraFX7500;
 import org.jboss.logging.Logger;
 
@@ -35,7 +29,6 @@ public class Main {
         return t;
     });
 
-
     private static final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     public static void main(final String[] args) {
@@ -43,7 +36,7 @@ public class Main {
     }
 
     private static void run() {
-        final Options opts = Options.builder()
+        final RfidDevice.Options opts = RfidDevice.Options.builder()
             .serial("COM3")
             .baudRate(115_200)
             .verbose(false)
@@ -56,23 +49,23 @@ public class Main {
             logger.infof("Connected: '%b'", connected);
 
             device.setCallback((event) -> {
-                if (event instanceof TagEvent) {
-                    final TagEvent tEvent = (TagEvent) event;
+                if (event instanceof RfidDevice.TagEvent) {
+                    final RfidDevice.TagEvent tEvent = (RfidDevice.TagEvent) event;
                     logger.infof("Tag: %s", tEvent.getTag());
                     epcs.add(tEvent.getTag().rfid);
-                } else if (event instanceof StatusEvent) {
-                    final StatusEvent sEvent = (StatusEvent) event;
+                } else if (event instanceof RfidDevice.StatusEvent) {
+                    final RfidDevice.StatusEvent sEvent = (RfidDevice.StatusEvent) event;
                     logger.infof("Status: %s", sEvent.getStatus());
-                } else if (event instanceof BatteryEvent) {
-                    final BatteryEvent bEvent = (BatteryEvent) event;
+                } else if (event instanceof RfidDevice.BatteryEvent) {
+                    final RfidDevice.BatteryEvent bEvent = (RfidDevice.BatteryEvent) event;
                     logger.infof("Battery: %d", bEvent.getLevel());
-                } else if (event instanceof ErrorEvent) {
-                    final ErrorEvent eEvent = (ErrorEvent) event;
+                } else if (event instanceof RfidDevice.ErrorEvent) {
+                    final RfidDevice.ErrorEvent eEvent = (RfidDevice.ErrorEvent) event;
                     logger.errorf(eEvent.getCause(), "An unexpected error happened.");
                 }
             });
 
-            final RfidDeviceFrequency frequency = RfidDeviceFrequency.BRAZIL;
+            final RfidDevice.Frequency frequency = RfidDevice.Frequency.BRAZIL;
             boolean fUpdated = device.setFrequency(frequency);
             if (fUpdated) {
                 logger.infof("Frequency updated to: '%s'", frequency);

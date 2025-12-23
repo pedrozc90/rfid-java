@@ -1,6 +1,6 @@
 package com.contare.rfid.chainway;
 
-import com.contare.rfid.objects.RfidDeviceFrequency;
+import com.contare.rfid.devices.RfidDevice;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -21,8 +21,8 @@ public class ChainwayTest<T extends ChainwayDevice<?>> {
     protected T device;
 
     @ParameterizedTest
-    @EnumSource(value = RfidDeviceFrequency.class)
-    public void testSetFrequency(final RfidDeviceFrequency frequency) {
+    @EnumSource(value = RfidDevice.Frequency.class)
+    public void testSetFrequency(final RfidDevice.Frequency frequency) {
         final boolean updated = device.setFrequency(frequency);
         assertTrue(updated);
     }

@@ -1,11 +1,7 @@
 package com.contare.rfid.acura;
 
-import com.contare.rfid.events.RfidDeviceEvent;
-import com.contare.rfid.events.TagEvent;
+import com.contare.rfid.devices.RfidDevice;
 import com.contare.rfid.exceptions.RfidDeviceException;
-import com.contare.rfid.objects.Options;
-import com.contare.rfid.objects.RfidDeviceFrequency;
-import com.contare.rfid.objects.RfidDeviceParams;
 import com.contare.rfid.objects.TagMetadata;
 import com.thingmagic.*;
 import org.jboss.logging.Logger;
@@ -22,10 +18,10 @@ public class AcuraDevice extends AcuraBaseDevice {
     private final Logger logger = Logger.getLogger(AcuraDevice.class.getName());
 
     private volatile Reader reader;
-    private Options opts;
+    private RfidDevice.Options opts;
 
     private final Executor executor;
-    private volatile Consumer<RfidDeviceEvent> _callback;
+    private volatile Consumer<RfidDevice.Event> _callback;
     private volatile ReadListener listener;
     private boolean connected = false;
     private boolean reading = false;
@@ -35,7 +31,7 @@ public class AcuraDevice extends AcuraBaseDevice {
     }
 
     @Override
-    public boolean connect(final Options opts) throws RfidDeviceException {
+    public boolean connect(final RfidDevice.Options opts) throws RfidDeviceException {
         Objects.requireNonNull(opts, "Options must not be null");
 
         final String serialPort = opts.getSerial();
@@ -74,17 +70,17 @@ public class AcuraDevice extends AcuraBaseDevice {
     }
 
     @Override
-    public RfidDeviceParams getInventoryParameters() {
+    public RfidDevice.Params getInventoryParameters() {
         return null;
     }
 
     @Override
-    public boolean setInventoryParameters(final RfidDeviceParams params) {
+    public boolean setInventoryParameters(final RfidDevice.Params params) {
         return false;
     }
 
     @Override
-    public void setCallback(final Consumer<RfidDeviceEvent> callback) {
+    public void setCallback(final Consumer<RfidDevice.Event> callback) {
         _callback = callback;
     }
 
@@ -170,7 +166,27 @@ public class AcuraDevice extends AcuraBaseDevice {
     }
 
     @Override
-    public RfidDeviceFrequency getFrequency() {
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        try {
+            final TagData filter = new TagData(rfid);
+
+            // Kill password (must be 32 bits)
+            // Example: 0x00000000 — many tags will NOT allow kill with this
+            final int value = Integer.parseUnsignedInt(password, 16);
+
+            final Gen2.Kill operation = new Gen2.Kill(value);
+
+            final Object result = reader.executeTagOp(operation, filter);
+            logger.debugf("Kill result: %s", result);
+
+            return true;
+        } catch (ReaderException e) {
+            throw new RfidDeviceException(e);
+        }
+    }
+
+    @Override
+    public RfidDevice.Frequency getFrequency() {
         try {
             if (reader != null) {
                 if (connected) {
@@ -198,7 +214,7 @@ public class AcuraDevice extends AcuraBaseDevice {
 
     // TODO: Not sure if works
     @Override
-    public boolean setFrequency(final RfidDeviceFrequency frequency) {
+    public boolean setFrequency(final RfidDevice.Frequency frequency) {
         final AcuraFrequency freq = AcuraFrequency.of(frequency);
 
         try {

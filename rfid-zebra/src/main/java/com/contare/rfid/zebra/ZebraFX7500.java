@@ -2,11 +2,8 @@ package com.contare.rfid.zebra;
 
 import com.contare.rfid.devices.BufferedRfidDevice;
 import com.contare.rfid.devices.RfidDevice;
-import com.contare.rfid.events.RfidDeviceEvent;
-import com.contare.rfid.events.StatusEvent;
-import com.contare.rfid.events.TagEvent;
 import com.contare.rfid.exceptions.RfidDeviceException;
-import com.contare.rfid.objects.*;
+import com.contare.rfid.objects.TagMetadata;
 import com.mot.rfid.api3.*;
 import org.jboss.logging.Logger;
 
@@ -17,11 +14,14 @@ import java.util.function.Consumer;
 
 public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
 
+    private static final int minPower = 0;
+    private static final int maxPower = 100;
+
     private final Logger logger = Logger.getLogger(ZebraFX7500.class);
 
     private RFIDReader reader;
     private final ExecutorService executor;
-    private volatile Consumer<RfidDeviceEvent> _callback;
+    private volatile Consumer<RfidDevice.Event> _callback;
     private boolean reading = false;
 
     public ZebraFX7500(final ExecutorService executor) {
@@ -30,12 +30,12 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
 
     @Override
     public int getMinPower() {
-        return 0;
+        return minPower;
     }
 
     @Override
     public int getMaxPower() {
-        return 0;
+        return maxPower;
     }
 
     private TagMetadata toTagMetadata(final Events.ReadEventData data) {
@@ -46,7 +46,7 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public boolean connect(final Options opts) throws RfidDeviceException {
+    public boolean connect(final RfidDevice.Options opts) throws RfidDeviceException {
         Objects.requireNonNull(opts, "Options cannot be null.");
 
         final String host = opts.getIp();
@@ -100,11 +100,12 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
 
                     if (data.DisconnectionEventData != null) {
                         executor.execute(() -> {
-                            _callback.accept(new StatusEvent(Status.DISCONNECTED));
+                            _callback.accept(new StatusEvent(RfidDevice.Status.DISCONNECTED));
                         });
                     }
                 }
             });
+
             reader.Events.setInventoryStartEvent(true);
             reader.Events.setInventoryStopEvent(true);
             reader.Events.setAccessStartEvent(true);
@@ -160,17 +161,17 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public RfidDeviceParams getInventoryParameters() {
+    public RfidDevice.Params getInventoryParameters() {
         return null;
     }
 
     @Override
-    public boolean setInventoryParameters(final RfidDeviceParams params) {
+    public boolean setInventoryParameters(final RfidDevice.Params params) {
         return false;
     }
 
     @Override
-    public void setCallback(final Consumer<RfidDeviceEvent> callback) {
+    public void setCallback(final Consumer<RfidDevice.Event> callback) {
         _callback = callback;
     }
 
@@ -212,12 +213,74 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
     }
 
     @Override
-    public RfidDeviceFrequency getFrequency() {
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        try {
+            // parse password as unsigned HEX (recommended)
+            long value = Long.parseUnsignedLong(password, 16);
+            logger.debugf("Kill password (HEX): '%s', (DEC): '%d'", password.toUpperCase(), value);
+
+            final TagAccess.KillAccessParams params = reader.Actions.TagAccess.new KillAccessParams(value);
+
+            final short[] antennas = reader.Config.Antennas.getAvailableAntennas();
+
+            reader.Actions.TagAccess.killWait(rfid, params, new AntennaInfo(antennas));
+            logger.debugf("Tag '%s' killed.", rfid);
+
+            return true;
+        } catch (InvalidUsageException e) {
+            throw new RfidDeviceException(e);
+        } catch (OperationFailureException e) {
+            throw new RfidDeviceException(e, "Failed to kill tag %s", rfid);
+        }
+    }
+
+    @Override
+    public RfidDevice.Frequency getFrequency() {
+        final int length = reader.ReaderCapabilities.RFModes.Length();
+        for (int index = 0; index < length; index++) {
+            final RFModeTable tableInfo = reader.ReaderCapabilities.RFModes.getRFModeTableInfo(index);
+            logger.debugf("RFModeTable[%d]: %s", index, tableInfo);
+            // logger.debugf("", tableInfo.getProtocolID());
+            // logger.debugf("", tableInfo.getRFModeTableEntryInfo());
+        }
+
+        try {
+            final Antennas.AntennaRfConfig config = reader.Config.Antennas.getAntennaRfConfig((short) 1);
+            final long index = config.getrfModeTableIndex();
+
+            logger.debugf("Frequency Index = '%d'", index);
+
+            // TODO: how do i know the frequency?
+        } catch (InvalidUsageException e) {
+            logger.errorf(e, "Invalid antenna index.");
+        } catch (OperationFailureException e) {
+            logger.errorf(e, "Failed to get frequency.");
+        }
         return null;
     }
 
     @Override
-    public boolean setFrequency(final RfidDeviceFrequency frequency) {
+    public boolean setFrequency(final RfidDevice.Frequency frequency) {
+        try {
+            final ZebraFrequency freq = ZebraFrequency.of(frequency);
+            if (freq == null) {
+                throw new IllegalArgumentException("Frequency " + frequency.getLabel() + " is not supported.");
+            }
+
+            final Antennas.AntennaRfConfig config = reader.Config.Antennas.getAntennaRfConfig((short) 1);
+            config.setrfModeTableIndex(freq.getIndex());
+
+            final short[] antennas = reader.Config.Antennas.getAvailableAntennas();
+            for (int ant : antennas) {
+                reader.Config.Antennas.setAntennaRfConfig(ant, config);
+            }
+
+            return true;
+        } catch (InvalidUsageException e) {
+            logger.errorf(e, "Failed to get frequency.");
+        } catch (OperationFailureException e) {
+            logger.errorf(e, "Failed to set frequency.");
+        }
         return false;
     }
 
@@ -225,7 +288,7 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
     public int getPower() {
         try {
             final int antennnaIndex = 1;
-            // short[] availableAntennas = reader.Config.Antennas.getAvailableAntennas();
+            // final short[] antennas = reader.Config.Antennas.getAvailableAntennas();
             final Antennas.Config config = reader.Config.Antennas.getAntennaConfig(antennnaIndex);
             final short powerIndex = config.getTransmitPowerIndex();
             final int[] powerLevelValues = reader.ReaderCapabilities.getTransmitPowerLevelValues();
@@ -236,36 +299,22 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
         }
     }
 
-    private int toPowerDbm(final int index) {
-        return index / 100;
-    }
-
-    private short toPowerIndex(final int dbm) {
-        final short value = (short) (dbm * 100);
-
-        final int[] powerLevels = reader.ReaderCapabilities.getTransmitPowerLevelValues();
-        for (short i = 0; i < powerLevels.length; i++) {
-            if (powerLevels[i] == value) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
     @Override
     public boolean setPower(final int value) {
         if (reader == null) return false;
 
+        if (value < minPower || value > maxPower) {
+            throw new IllegalArgumentException("Power value must be between " + minPower + " and " + maxPower + " dbm.");
+        }
+
         try {
             final short powerIndex = toPowerIndex(value);
             if (powerIndex == -1) {
-                throw new IllegalArgumentException("Power value not supported.");
+                throw new IllegalArgumentException(String.format("Power value '%d' not supported.", value));
             }
 
             // não consegui saber qual esta ativa ou não, por isso eu pego a configuração de cada uma que o leitor aceita e mando a mesma potencia.
             final short[] antennas = reader.Config.Antennas.getAvailableAntennas();
-
             for (int ant : antennas) {
                 final Antennas.Config config = reader.Config.Antennas.getAntennaConfig(ant);
                 config.setTransmitPowerIndex(powerIndex);
@@ -316,6 +365,24 @@ public class ZebraFX7500 extends BufferedRfidDevice implements RfidDevice {
         } catch (RfidDeviceException e) {
             logger.errorf(e, "Failed to close device.");
         }
+    }
+
+    // HELPERS
+    private int toPowerDbm(final int index) {
+        return index / 100;
+    }
+
+    private short toPowerIndex(final int dbm) {
+        final short value = (short) (dbm * 100);
+
+        final int[] powerLevels = reader.ReaderCapabilities.getTransmitPowerLevelValues();
+        for (short i = 0; i < powerLevels.length; i++) {
+            if (powerLevels[i] == value) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
 }

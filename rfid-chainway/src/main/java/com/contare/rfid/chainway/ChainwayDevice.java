@@ -1,13 +1,10 @@
 package com.contare.rfid.chainway;
 
-import com.contare.rfid.NativeLoader;
 import com.contare.rfid.devices.BufferedRfidDevice;
 import com.contare.rfid.devices.RfidDevice;
-import com.contare.rfid.events.RfidDeviceEvent;
-import com.contare.rfid.events.StatusEvent;
-import com.contare.rfid.events.TagEvent;
 import com.contare.rfid.exceptions.RfidDeviceException;
-import com.contare.rfid.objects.*;
+import com.contare.rfid.objects.TagMetadata;
+import com.contare.rfid.utils.NativeLoader;
 import com.rscja.deviceapi.ConnectionState;
 import com.rscja.deviceapi.entity.Gen2Entity;
 import com.rscja.deviceapi.entity.UHFTAGInfo;
@@ -15,9 +12,6 @@ import com.rscja.deviceapi.interfaces.IUHF;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -31,11 +25,11 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
     protected final int _maxPower = 33;
 
     protected final ExecutorService executor;
-    protected volatile Consumer<RfidDeviceEvent> _callback;
-    protected volatile Status _status = Status.DISCONNECTED;
+    protected volatile Consumer<RfidDevice.Event> _callback;
+    protected volatile RfidDevice.Status _status = RfidDevice.Status.DISCONNECTED;
     protected boolean isReading = false;
 
-    protected Options opts;
+    protected RfidDevice.Options opts;
 
     static {
         try {
@@ -62,10 +56,10 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
         return _maxPower;
     }
 
-    public abstract boolean init(final Options opts) throws RfidDeviceException;
+    public abstract boolean init(final RfidDevice.Options opts) throws RfidDeviceException;
 
     @Override
-    public boolean connect(final Options opts) throws RfidDeviceException {
+    public boolean connect(final RfidDevice.Options opts) throws RfidDeviceException {
         try {
             this.opts = opts;
 
@@ -75,7 +69,7 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
                 uhf.setConnectionStateCallback((state, obj) -> {
                     logger.debugf("Device connection state changed state = %s, obj = %s", state, obj);
 
-                    final Status status = toStatus(state);
+                    final RfidDevice.Status status = toStatus(state);
                     _status = status;
 
                     // dispatch status change to user listener
@@ -106,25 +100,25 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
 
     @Override
     public boolean isConnected() {
-        return _status == Status.CONNECTED;
+        return _status == RfidDevice.Status.CONNECTED;
     }
 
     @Override
-    public RfidDeviceParams getInventoryParameters() {
+    public RfidDevice.Params getInventoryParameters() {
         final Gen2Entity entity = uhf.getGen2();
-        // TODO: how do we transform Gen2Entity to RfidDeviceParams?
+        // TODO: how do we transform Gen2Entity to RfidDevice.Params?
         return null;
     }
 
     @Override
-    public boolean setInventoryParameters(final RfidDeviceParams params) {
-        // TODO: how do we transform RfidDeviceParams to Gen2Entity?
+    public boolean setInventoryParameters(final RfidDevice.Params params) {
+        // TODO: how do we transform RfidDevice.Params to Gen2Entity?
         final Gen2Entity entity = null;
         return uhf.setGen2(entity);
     }
 
     @Override
-    public void setCallback(final Consumer<RfidDeviceEvent> callback) {
+    public void setCallback(final Consumer<RfidDevice.Event> callback) {
         _callback = callback;
     }
 
@@ -183,15 +177,58 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
         return isReading;
     }
 
+    /**
+     * Destroy the label.
+     * <p>
+     * Example:
+     * <p>
+     * this.killTag("00000000");
+     * this.killTag("00000000", IUHG.Bank_EPC, 0, 0, "00000000000000000000000000000000");
+     *
+     * @param filterPwd  - password, Default 0x00 0x00 0x00 0x00
+     * @param filterBank - filtered bank (IUHF.Bank_EPC, IUHF.Bank_TID or IUHF.Bank_USER)
+     * @param filterPtr  - starting address of the filter
+     * @param filterCnt  - filter data length, if filter data length is 0, it means no filtering
+     * @param filterData - filter data
+     * @return true if operation succeeded, false otherwise.
+     */
+    private boolean killTag(final String filterPwd, final int filterBank, final int filterPtr, final int filterCnt, final String filterData) {
+        if (filterPwd == null || filterPwd.isEmpty()) {
+            throw new IllegalArgumentException("Filter password must not be empty");
+        } else if (filterPwd.length() != 8) {
+            throw new IllegalArgumentException("Filter password must be 8 characters long");
+        }
+
+        if (filterBank == IUHF.Bank_EPC || filterBank == IUHF.Bank_TID || filterBank == IUHF.Bank_USER) {
+            if (filterData == null || filterData.isEmpty()) {
+                throw new IllegalArgumentException("Filter data must not be empty");
+            }
+            if (filterData.length() * 4 < filterCnt) {
+                throw new IllegalArgumentException("Filter data length must be greater than or equal to filter bit count");
+            }
+
+            return uhf.killTag(filterPwd, filterBank, filterPtr, filterCnt, filterData);
+        }
+
+        return uhf.killTag(filterPwd);
+    }
+
     @Override
-    public RfidDeviceFrequency getFrequency() {
+    public boolean killTag(final String rfid, final String password) throws RfidDeviceException {
+        final String pwd = (password != null) ? password : "00000000";
+        final int length = rfid.length() * 4;
+        return this.killTag(pwd, IUHF.Bank_EPC, 0, length, rfid);
+    }
+
+    @Override
+    public RfidDevice.Frequency getFrequency() {
         final int mask = uhf.getFrequencyMode();
         final ChainwayFrequency value = ChainwayFrequency.of(mask);
         return value.toFrequency();
     }
 
     @Override
-    public boolean setFrequency(final RfidDeviceFrequency frequency) {
+    public boolean setFrequency(final RfidDevice.Frequency frequency) {
         final ChainwayFrequency value = ChainwayFrequency.of(frequency);
         return uhf.setFrequencyMode((byte) value.getMask());
     }
@@ -214,7 +251,7 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
     }
 
     @Override
-    public boolean setTagFocus(boolean enabled) {
+    public boolean setTagFocus(final boolean enabled) {
         return uhf.setTagFocus(enabled);
     }
 
@@ -439,58 +476,22 @@ public abstract class ChainwayDevice<T extends IUHF> extends BufferedRfidDevice 
         return uhf.writeData(accessPwd, bank, ptr, cnt, writeData);
     }
 
-    /**
-     * Destroy the label.
-     * <p>
-     * Example:
-     * <p>
-     * this.killTag("00000000");
-     * this.killTag("00000000", IUHG.Bank_EPC, 0, 0, "00000000000000000000000000000000");
-     *
-     * @param filterPwd  - password, Default 0x00 0x00 0x00 0x00
-     * @param filterBank - filtered bank (IUHF.Bank_EPC, IUHF.Bank_TID or IUHF.Bank_USER)
-     * @param filterPtr  - starting address of the filter
-     * @param filterCnt  - filter data length, if filter data length is 0, it means no filtering
-     * @param filterData - filter data
-     * @return true if operation succeeded, false otherwise.
-     */
-    public boolean killTag(final String filterPwd, final int filterBank, final int filterPtr, final int filterCnt, final String filterData) {
-        if (filterPwd == null || filterPwd.isEmpty()) {
-            throw new IllegalArgumentException("Filter password must not be empty");
-        } else if (filterPwd.length() != 8) {
-            throw new IllegalArgumentException("Filter password must be 8 characters long");
-        }
-
-        if (filterBank == IUHF.Bank_EPC || filterBank == IUHF.Bank_TID || filterBank == IUHF.Bank_USER) {
-            if (filterData == null || filterData.isEmpty()) {
-                throw new IllegalArgumentException("Filter data must not be empty");
-            }
-            if (filterData.length() * 4 < filterCnt) {
-                throw new IllegalArgumentException("Filter data length must be greater than or equal to filter bit count");
-            }
-
-            return uhf.killTag(filterPwd, filterBank, filterPtr, filterCnt, filterData);
-        }
-
-        return uhf.killTag(filterPwd);
-    }
-
     // HELPERS
     private TagMetadata toTagMetadata(final UHFTAGInfo info) {
         final Integer antenna = Integer.parseInt(info.getAnt());
         return new TagMetadata(info.getEPC(), info.getTid(), info.getRssi(), antenna);
     }
 
-    private Status toStatus(final ConnectionState state) {
+    private RfidDevice.Status toStatus(final ConnectionState state) {
         switch (state) {
             case CONNECTED:
-                return Status.CONNECTED;
+                return RfidDevice.Status.CONNECTED;
             case DISCONNECTED:
-                return Status.DISCONNECTED;
+                return RfidDevice.Status.DISCONNECTED;
             case CONNTCTING:
-                return Status.CONNECTING;
+                return RfidDevice.Status.CONNECTING;
             default:
-                return Status.UNKNOWN;
+                return RfidDevice.Status.UNKNOWN;
         }
     }
 

@@ -13,10 +13,10 @@
     <modules>
         <module>rfid-core</module>
         <module>rfid-chainway</module>
-        <module>sample</module>
         <module>rfid-zebra</module>
         <module>rfid-impinj</module>
         <module>rfid-acura</module>
+        <module>rfid-sample</module>
     </modules>
 
     <properties>
